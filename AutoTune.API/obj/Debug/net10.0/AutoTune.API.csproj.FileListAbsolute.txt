@@ -166,3 +166,4 @@ C:\Users\rartu\AutoTuneStudioManager\AutoTune.API\bin\Debug\net10.0\ru\Microsoft
 C:\Users\rartu\AutoTuneStudioManager\AutoTune.API\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Users\rartu\AutoTuneStudioManager\AutoTune.API\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Users\rartu\AutoTuneStudioManager\AutoTune.API\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\rartu\AutoTuneStudioManager\AutoTune.API\obj\Debug\net10.0\AutoTune.API.sourcelink.json
