@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AutoTune.API/AutoTune.API.csproj" />
+  <Project Path="AutoTune.Tests/AutoTune.Tests.csproj" />
+</Solution>
