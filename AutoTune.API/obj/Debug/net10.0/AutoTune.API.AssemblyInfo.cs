@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AutoTune.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+86bb5a49039f02c2caef93dfcc9aff7bf8b306f4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f06904a9f20c4fb15beff048252ae5668d8b8293")]
 [assembly: System.Reflection.AssemblyProductAttribute("AutoTune.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AutoTune.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

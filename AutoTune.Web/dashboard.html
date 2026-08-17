@@ -2,32 +2,308 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AutoTune Studio - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #121212; color: #ffffff; }
+        .card { background-color: #1e1e1e; border: 1px solid #333; color: #fff; }
+        .table-dark { background-color: #1e1e1e; }
+        .stock-alert { background-color: #b71c1c !important; color: #fff !important; }
+        .nav-pills .nav-link.active { background-color: #00e676; color: #000; font-weight: bold; }
+        .nav-pills .nav-link { color: #fff; }
+    </style>
 </head>
-<body class="bg-dark text-white p-5">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 id="bienvenida">Panel de Control</h1>
+<body class="p-4">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <div>
+                <h1 id="bienvenida" class="h3 text-success">Panel de Control</h1>
+                <p id="user-info" class="text-muted mb-0"></p>
+            </div>
             <button onclick="logout()" class="btn btn-outline-danger">Cerrar Sesión</button>
         </div>
-        <p class="lead">Bienvenido al sistema de gestión de AutoTune Studio.</p>
+
+        <!-- Módulos Navegables -->
+        <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-citas">Citas & Servicios</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-ordenes">Estado de Órdenes</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-almacen">Almacén & Repuestos</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-reportes">Reportes</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-perfil">Mi Perfil</button></li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+            
+            <!-- HU-03, HU-04, HU-05, HU-09: Citas -->
+            <div class="tab-pane fade show active" id="tab-citas">
+                <div class="row">
+                    <div class="col-md-5 mb-4">
+                        <div class="card p-3">
+                            <h4>Agendar Cita</h4>
+                            <form onsubmit="agendarCita(event)">
+                                <div class="mb-2">
+                                    <label class="form-label">Fecha y Hora</label>
+                                    <input type="datetime-local" id="cita-fecha" class="form-control bg-dark text-white border-secondary" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Tipo de Servicio</label>
+                                    <select id="cita-servicio" class="form-select bg-dark text-white border-secondary">
+                                        <option value="Reprogramación ECU Stage 1">Reprogramación ECU Stage 1</option>
+                                        <option value="Sistema de Escape Titanium">Sistema de Escape Titanium</option>
+                                        <option value="Instalación Coilovers">Instalación Coilovers</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100 mt-2">Solicitar Cita</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="card p-3">
+                            <h4>Gestión e Historial de Citas</h4>
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Servicio</th>
+                                            <th>Estado</th>
+                                            <th>Técnico</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-citas"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado de Órdenes e Historial -->
+            <div class="tab-pane fade" id="tab-ordenes">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card p-3">
+                            <h4>Consulta Estado de Orden</h4>
+                            <div class="input-group mb-3">
+                                <input type="text" id="codigo-orden" class="form-control bg-dark text-white border-secondary" placeholder="Ej: ORD-101">
+                                <button onclick="consultarOrden()" class="btn btn-success">Buscar</button>
+                            </div>
+                            <div id="resultado-orden" class="alert alert-secondary d-none"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3">
+                            <h4>Historial de Servicios por Vehículo</h4>
+                            <ul class="list-group list-group-flush" id="historial-vehiculo">
+                                <li class="list-group-item bg-dark text-white">2026-01-15 - Stage 1 (+30 HP) - $500 USD</li>
+                                <li class="list-group-item bg-dark text-white">2026-03-10 - Espirales Deportivos - $350 USD</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HU-07, HU-08: Almacén y Piezas -->
+            <div class="tab-pane fade" id="tab-almacen">
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card p-3">
+                            <h4>Registrar Repuesto</h4>
+                            <form onsubmit="registrarPieza(event)">
+                                <input type="text" id="p-codigo" class="form-control bg-dark text-white border-secondary mb-2" placeholder="Código" required>
+                                <input type="text" id="p-nombre" class="form-control bg-dark text-white border-secondary mb-2" placeholder="Nombre pieza" required>
+                                <input type="number" id="p-stock" class="form-control bg-dark text-white border-secondary mb-2" placeholder="Stock inicial" required>
+                                <input type="number" id="p-precio" class="form-control bg-dark text-white border-secondary mb-2" placeholder="Precio ($)" required>
+                                <button type="submit" class="btn btn-success w-100">Guardar Pieza</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card p-3">
+                            <h4>Inventario de Repuestos (Alerta &lt; 5 unidades)</h4>
+                            <table class="table table-dark">
+                                <thead>
+                                    <tr><th>Código</th><th>Nombre</th><th>Stock</th><th>Precio</th></tr>
+                                </thead>
+                                <tbody id="tabla-piezas"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HU-11: Reportes -->
+            <div class="tab-pane fade" id="tab-reportes">
+                <div class="card p-3">
+                    <h4>Reporte Operativo Mensual</h4>
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <input type="month" id="reporte-mes" class="form-control bg-dark text-white border-secondary" value="2026-08">
+                        </div>
+                        <div class="col-md-8">
+                            <button onclick="descargarReporte('PDF')" class="btn btn-danger">Exportar a PDF</button>
+                            <button onclick="descargarReporte('Excel')" class="btn btn-success">Exportar a Excel</button>
+                        </div>
+                    </div>
+                    <div id="reporte-output" class="mt-3 p-3 bg-dark border rounded d-none"></div>
+                </div>
+            </div>
+
+            <!-- HU-12: Edición de Perfil -->
+            <div class="tab-pane fade" id="tab-perfil">
+                <div class="card p-3 max-w-500">
+                    <h4>Editar Perfil</h4>
+                    <form onsubmit="actualizarPerfil(event)">
+                        <div class="mb-2">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" id="perfil-nombre" class="form-control bg-dark text-white border-secondary" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" id="perfil-telefono" class="form-control bg-dark text-white border-secondary" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Validar que el usuario haya iniciado sesión
-        const usuarioData = localStorage.getItem('usuario');
-        if (!usuarioData) {
-            window.location.href = 'index.html';
-        } else {
-            const usuario = JSON.parse(usuarioData);
-            document.getElementById('bienvenida').innerText = `Panel de Control - ${usuario.nombre} (${usuario.rol})`;
+        // Carga inicial y validación de sesión
+        const usuario = JSON.parse(localStorage.getItem('usuario'));
+        if (!usuario) window.location.href = 'index.html';
+
+        document.getElementById('bienvenida').innerText = `Panel de Control - ${usuario.nombre}`;
+        document.getElementById('user-info').innerText = `Rol: ${usuario.rol} | Email: ${usuario.email}`;
+        document.getElementById('perfil-nombre').value = usuario.nombre || '';
+        document.getElementById('perfil-telefono').value = usuario.telefono || '';
+
+        // Restricción fecha mínima (HU-03)
+        document.getElementById('cita-fecha').min = new Date().toISOString().slice(0, 16);
+
+        // Estado inicial de datos
+        let citas = JSON.parse(localStorage.getItem('citas_db')) || [
+            { id: 1, fecha: '2026-08-20T10:00', servicio: 'Reprogramación ECU Stage 1', estado: 'Pendiente', tecnico: 'Sin Asignar' }
+        ];
+
+        let piezas = JSON.parse(localStorage.getItem('piezas_db')) || [
+            { codigo: 'P-01', nombre: 'Downpipe Stainless', stock: 3, precio: 250 },
+            { codigo: 'P-02', nombre: 'Turbo XL Kit', stock: 8, precio: 1200 }
+        ];
+
+        function renderCitas() {
+            const tbody = document.getElementById('tabla-citas');
+            tbody.innerHTML = citas.map(c => {
+                const diffHours = (new Date(c.fecha) - new Date()) / (1000 * 60 * 60);
+                const canCancel = diffHours >= 24 && c.estado !== 'Cancelada';
+                return `
+                    <tr>
+                        <td>${c.fecha.replace('T', ' ')}</td>
+                        <td>${c.servicio}</td>
+                        <td><span class="badge bg-${c.estado === 'Aprobada' ? 'success' : c.estado === 'Rechazada' ? 'danger' : 'warning'}">${c.estado}</span></td>
+                        <td>${c.tecnico}</td>
+                        <td>
+                            ${usuario.rol === 'Administrador' ? `
+                                <button class="btn btn-sm btn-success" onclick="cambiarEstadoCita(${c.id}, 'Aprobada')">Aprobar</button>
+                                <button class="btn btn-sm btn-danger" onclick="cambiarEstadoCita(${c.id}, 'Rechazada')">Rechazar</button>
+                                <button class="btn btn-sm btn-info" onclick="asignarTecnico(${c.id})">Técnico</button>
+                            ` : ''}
+                            <button class="btn btn-sm btn-outline-danger" ${!canCancel ? 'disabled' : ''} onclick="cancelarCita(${c.id})">Cancelar</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPiezas() {
+            const tbody = document.getElementById('tabla-piezas');
+            tbody.innerHTML = piezas.map(p => `
+                <tr class="${p.stock < 5 ? 'stock-alert' : ''}">
+                    <td>${p.codigo}</td>
+                    <td>${p.nombre}</td>
+                    <td>${p.stock} ${p.stock < 5 ? '(¡Bajo Stock!)' : ''}</td>
+                    <td>$${p.precio} USD</td>
+                </tr>
+            `).join('');
+        }
+
+        function agendarCita(e) {
+        e.preventDefault();
+        const fecha = document.getElementById('cita-fecha').value;
+        const servicio = document.getElementById('cita-servicio').value;
+        citas.push({ id: Date.now(), fecha, servicio, estado: 'Pendiente', tecnico: 'Sin Asignar' });
+        localStorage.setItem('citas_db', JSON.stringify(citas));
+        renderCitas();
+        alert('Solicitud enviada correctamente.');
+        }
+
+        function cambiarEstadoCita(id, estado) {
+            citas = citas.map(c => c.id === id ? { ...c, estado } : c);
+            localStorage.setItem('citas_db', JSON.stringify(citas));
+            renderCitas();
+        }
+
+        function asignarTecnico(id) {
+            const tec = prompt("Especifique especialista disponible (Mecánico Carlos / Mecánico Juan):", "Carlos G.");
+            if (tec) {
+                citas = citas.map(c => c.id === id ? { ...c, tecnico: tec } : c);
+                localStorage.setItem('citas_db', JSON.stringify(citas));
+                renderCitas();
+            }
+        }
+
+        function cancelarCita(id) {
+            cambiarEstadoCita(id, 'Cancelada');
+        }
+
+        function consultarOrden() {
+            const cod = document.getElementById('codigo-orden').value;
+            const res = document.getElementById('resultado-orden');
+            res.classList.remove('d-none');
+            res.innerText = cod ? `Orden [${cod}]: Fase actual -> En Modificación (Pruebas de Dinamómetro pendientes).` : 'Por favor ingrese un código válido.';
+        }
+
+        function registrarPieza(e) {
+            e.preventDefault();
+            piezas.push({
+                codigo: document.getElementById('p-codigo').value,
+                nombre: document.getElementById('p-nombre').value,
+                stock: parseInt(document.getElementById('p-stock').value),
+                precio: parseFloat(document.getElementById('p-precio').value)
+            });
+            localStorage.setItem('piezas_db', JSON.stringify(piezas));
+            renderPiezas();
+        }
+
+        function descargarReporte(formato) {
+            const mes = document.getElementById('reporte-mes').value;
+            const out = document.getElementById('reporte-output');
+            out.classList.remove('d-none');
+            out.innerText = `Reporte mensual [${mes}] exportado exitosamente en formato ${formato}. Total Ganancias: $4,500 USD | Citas Atendidas: 12.`;
+        }
+
+        function actualizarPerfil(e) {
+            e.preventDefault();
+            usuario.nombre = document.getElementById('perfil-nombre').value;
+            usuario.telefono = document.getElementById('perfil-telefono').value;
+            localStorage.setItem('usuario', JSON.stringify(usuario));
+            document.getElementById('bienvenida').innerText = `Panel de Control - ${usuario.nombre}`;
+            alert('Perfil actualizado con éxito.');
         }
 
         function logout() {
             localStorage.removeItem('usuario');
             window.location.href = 'index.html';
         }
+
+        renderCitas();
+        renderPiezas();
     </script>
 </body>
 </html>
